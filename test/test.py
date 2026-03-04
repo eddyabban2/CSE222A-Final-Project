@@ -205,3 +205,37 @@ async def compute_test_3(dut):
             assert sum == dut.uo_out.value
         await ClockCycles(dut.clk, 1)
         ptr +=1 
+
+@cocotb.test()
+async def write_test_3(dut):
+    dut._log.info("Start")
+
+    # Set the clock period to 10 us (100 KHz)
+    clock = Clock(dut.clk, 10, unit="us")
+    cocotb.start_soon(clock.start())
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    dut.ui_in.value = 0
+    dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 2)
+    dut.rst_n.value = 1
+
+
+    dut._log.info("Test project behavior")
+    input_values = [19,115,141,94,10,222,42,55]
+    dut.uio_in.value = WRITE_STATE
+    await ClockCycles(dut.clk, 1)
+    # setting next state as early as possible
+    dut.uio_in.value = READ_STATE
+    for input_value in input_values:
+        dut.ui_in.value = input_value
+        await ClockCycles(dut.clk, 1)
+    
+    # wait once cycles for mode switch
+    await ClockCycles(dut.clk, 2) 
+    for input_value in input_values:
+        assert dut.uo_out.value == input_value
+        await ClockCycles(dut.clk, 1)
