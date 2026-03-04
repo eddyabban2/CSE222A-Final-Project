@@ -1,12 +1,3 @@
-<!---
-
-This file is used to generate your project datasheet. Please fill in the information below and delete any unused
-sections.
-
-You can also include images in this folder and reference them in the markdown. Each image must be less than
-512 kb in size, and the combined size of all images must be less than 1 MB.
--->
-
 ## How it works
 
 The goal of this tiny tapeout design was to mimic binary SRAM based compute in memory circuits using registers. As a result this chip consists of an 8x8 array of registers. This stores 8 8-bit integers. Since this is a meant to mimic binary based CIM circuits we only support input activations of 0 and 1. This means that the final result that is returned is every weight multiplied by an activation that is either one or zero summed together. Ideally this would be expanded to support ternary activation (-1,0,1).
