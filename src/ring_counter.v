@@ -9,10 +9,11 @@ module ring_ctr  #(parameter WIDTH=8)
       if (rst)
          out <= 1;
       else begin
-        out[WIDTH-1] <= out[0];
-        for (int i = 0; i < WIDTH-1; i=i+1) begin
-          out[i+1] <= out[i];
-        end
+        out <= {out[WIDTH-2:0], out[WIDTH-1]};
+
+        // Self-correcting: if out ever becomes 0 (e.g. X propagation), recover
+        if (out == {WIDTH{1'b0}})
+            out <= {{WIDTH-1{1'b0}}, 1'b1};
       end
   end
 endmodule

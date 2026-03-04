@@ -44,14 +44,20 @@ module tt_um_cir #(
 		.out(counter_out)
 	);
 
-always @(*) begin
-    next_state = current_state; // default: hold state
+always @(posedge clk) begin
+  if(!rst_n)
+    current_state <= RESET;
+  else if (counter_out[7] || current_state == RESET)
+    current_state <= next_state;
+end
 
+always @(*) begin
+    next_state = READ; // default: hold state
     case (uio_in[1:0])
         READ:    next_state = READ;
         WRITE:   next_state = WRITE;
         COMPUTE: next_state = COMPUTE;
-        RESET:   next_state = IDLE;   // RESET input → go to IDLE
+        RESET:   next_state = RESET;  
         default: next_state = current_state;
     endcase
 end
@@ -60,7 +66,7 @@ end
   wire [(DEPTH*WIDTH)-1:0] weight_registers_outputs;
   wire [WIDTH-1:0] current_reg_output;
   mux_8to1 output_selector(
-    .a(weight_registers_outputs[WIDTH*1-1:WIDTH*0]),
+    .a(weight_registers_outputs[WIDTH*1-1:0]),
     .b(weight_registers_outputs[WIDTH*2-1:WIDTH*1]),
     .c(weight_registers_outputs[WIDTH*3-1:WIDTH*2]),
     .d(weight_registers_outputs[WIDTH*4-1:WIDTH*3]),
@@ -91,21 +97,19 @@ end
       final_result <= current_reg_output;
     else
       final_result <= final_result + current_reg_output;
-  end
-    // if we are in read mode  the output 
-  else if(current_state == READ)
+  end else if(current_state == READ)
     final_result <= current_reg_output;
     // if we are in write mode print the write data 
   else if(current_state == WRITE)
     final_result <= ui_in;
-    // if we are in reset set to 0
+    
   else
     final_result <= 0;
   end
 
   assign uio_out = 0;
   assign uio_oe  = 0;
-  
+  assign uo_out = final_result;
   // List all unused inputs to prevent warnings
   wire _unused = &{ena, clk, rst_n, 1'b0};
 
